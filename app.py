@@ -78,43 +78,45 @@ with st.sidebar:
         key=st.session_state.upload_key,
         help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
+
+        # --- URL Upload ---
     st.markdown("---")
-st.subheader("🌐 Or Load via Document URL")
+    st.subheader("🌐 Or Load via Document URL")
 
-doc_url = st.text_input(
-    "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
-    help="Make sure the link is publicly accessible."
-)
+    doc_url = st.text_input(
+        "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
+        help="Make sure the link is publicly accessible."
+    )
 
-if st.button("📥 Fetch & Upload Document from URL") and doc_url:
-    try:
-        with st.spinner("Fetching document from URL..."):
-            response = requests.get(doc_url)
-            if response.status_code != 200:
-                st.error("❌ Failed to fetch the document. Check the URL.")
-                st.stop()
+    if st.button("📥 Fetch & Upload Document from URL") and doc_url:
+        try:
+            with st.spinner("Fetching document from URL..."):
+                response = requests.get(doc_url)
+                if response.status_code != 200:
+                    st.error("❌ Failed to fetch the document. Check the URL.")
+                    st.stop()
 
-            content_type = response.headers.get("content-type", "").lower()
-            suffix = ".pdf"
-            if "docx" in content_type:
-                suffix = ".docx"
-            elif "excel" in content_type or "xlsx" in content_type:
-                suffix = ".xlsx"
-            elif "text" in content_type:
-                suffix = ".txt"
+                content_type = response.headers.get("content-type", "").lower()
+                suffix = ".pdf"
+                if "docx" in content_type:
+                    suffix = ".docx"
+                elif "excel" in content_type or "xlsx" in content_type:
+                    suffix = ".xlsx"
+                elif "text" in content_type:
+                    suffix = ".txt"
 
-            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-            tmp_file.write(response.content)
-            tmp_file.close()
+                tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                tmp_file.write(response.content)
+                tmp_file.close()
 
-            # Simulate uploaded file
-            with open(tmp_file.name, "rb") as f:
-                uploaded_file = f
-                st.success("✅ Document fetched and ready for processing!")
+                with open(tmp_file.name, "rb") as f:
+                    uploaded_file = f
+                    st.success("✅ Document fetched and ready for processing!")
 
-    except Exception as e:
-        st.error(f"❌ Error fetching file: {e}")
-        st.stop()
+        except Exception as e:
+            st.error(f"❌ Error fetching file: {e}")
+            st.stop()
+
 
     if st.button("🗑️ Reset / Upload New File"):
         for key in list(st.session_state.keys()):
@@ -246,5 +248,6 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
