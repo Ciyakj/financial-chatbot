@@ -79,9 +79,7 @@ with st.sidebar:
         help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
 
-        # --- URL Upload ---
-    
-from io import BytesIO
+    from io import BytesIO
 
 st.markdown("---")
 st.subheader("🌐 Or Load via Document URL")
@@ -120,30 +118,30 @@ if st.button("📥 Fetch & Upload Document from URL") and doc_url:
         st.error(f"❌ Error fetching file: {e}")
         st.stop()
 
+# ✅ Now outside the above block — always visible
+if st.button("🗑️ Reset / Upload New File"):
+    for key in list(st.session_state.keys()):
+        if key not in ["theme"]:
+            del st.session_state[key]
+    st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
+    st.cache_data.clear()
+    st.rerun()
 
+# ⬇️ Keep the download button logic as-is below
+def download_button(label, content, filename):
+    b64 = base64.b64encode(content.encode()).decode()
+    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">{label}</a>'
+    st.markdown(href, unsafe_allow_html=True)
 
-    if st.button("🗑️ Reset / Upload New File"):
-        for key in list(st.session_state.keys()):
-            if key not in ["theme"]:
-                del st.session_state[key]
-        st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
-        st.cache_data.clear()
-        st.rerun()
+if st.session_state.messages:
+    chat_text = "\n\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in st.session_state.messages])
+    download_button("📅 Download Chat", chat_text, "chat_history.txt")
 
-    def download_button(label, content, filename):
-        b64 = base64.b64encode(content.encode()).decode()
-        href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">{label}</a>'
-        st.markdown(href, unsafe_allow_html=True)
-
-    if st.session_state.messages:
-        chat_text = "\n\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in st.session_state.messages])
-        download_button("📅 Download Chat", chat_text, "chat_history.txt")
-
-    if "insights" in st.session_state:
-        insights_text = st.session_state["insights"]
-        if isinstance(insights_text, list):
-            insights_text = "\n".join(insights_text)
-        download_button("📅 Download Insights", insights_text, "financial_insights.txt")
+if "insights" in st.session_state:
+    insights_text = st.session_state["insights"]
+    if isinstance(insights_text, list):
+        insights_text = "\n".join(insights_text)
+    download_button("📅 Download Insights", insights_text, "financial_insights.txt")
 
 # --- Document Handling ---
 if uploaded_file or "uploaded_file" in st.session_state:
@@ -263,6 +261,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
