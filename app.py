@@ -80,42 +80,50 @@ with st.sidebar:
     )
 
         # --- URL Upload ---
-    st.markdown("---")
-    st.subheader("🌐 Or Load via Document URL")
+    
+from io import BytesIO
 
-    doc_url = st.text_input(
-        "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
-        help="Make sure the link is publicly accessible."
-    )
+st.markdown("---")
+st.subheader("🌐 Or Load via Document URL")
 
-    if st.button("📥 Fetch & Upload Document from URL") and doc_url:
-        try:
-            with st.spinner("Fetching document from URL..."):
-                response = requests.get(doc_url)
-                if response.status_code != 200:
-                    st.error("❌ Failed to fetch the document. Check the URL.")
-                    st.stop()
+doc_url = st.text_input(
+    "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
+    help="Make sure the link is publicly accessible."
+)
 
-                content_type = response.headers.get("content-type", "").lower()
-                suffix = ".pdf"
-                if "docx" in content_type:
-                    suffix = ".docx"
-                elif "excel" in content_type or "xlsx" in content_type:
-                    suffix = ".xlsx"
-                elif "text" in content_type:
-                    suffix = ".txt"
+if st.button("📥 Fetch & Upload Document from URL") and doc_url:
+    try:
+        with st.spinner("Fetching document from URL..."):
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(doc_url, headers=headers)
 
-                tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            if response.status_code != 200:
+                st.error("❌ Failed to fetch the document. Check the URL.")
+                st.stop()
+
+            content_type = response.headers.get("content-type", "").lower()
+            suffix = ".pdf"  # default
+
+            if "docx" in content_type:
+                suffix = ".docx"
+            elif "excel" in content_type or "xlsx" in content_type:
+                suffix = ".xlsx"
+            elif "text" in content_type or "plain" in content_type:
+                suffix = ".txt"
+
+            _, tmp_path = tempfile.mkstemp(suffix=suffix)
+            with open(tmp_path, "wb") as tmp_file:
                 tmp_file.write(response.content)
-                tmp_file.close()
 
-                with open(tmp_file.name, "rb") as f:
-                    uploaded_file = f
-                    st.success("✅ Document fetched and ready for processing!")
+            with open(tmp_path, "rb") as f:
+                uploaded_file = BytesIO(f.read())
+                uploaded_file.name = f"fetched{suffix}"
+                st.session_state["fetched_file"] = uploaded_file
+                st.success("✅ Document fetched and ready for processing!")
 
-        except Exception as e:
-            st.error(f"❌ Error fetching file: {e}")
-            st.stop()
+    except Exception as e:
+        st.error(f"❌ Error fetching file: {e}")
+        st.stop()
 
 
     if st.button("🗑️ Reset / Upload New File"):
@@ -142,7 +150,10 @@ with st.sidebar:
         download_button("📅 Download Insights", insights_text, "financial_insights.txt")
 
 # --- Document Handling ---
-if uploaded_file is not None:
+if uploaded_file or "fetched_file" in st.session_state:
+    if not uploaded_file:
+        uploaded_file = st.session_state["fetched_file"]
+
     st.success("✅ Document uploaded successfully!")
     with st.spinner("🔀 Processing document..."):
         raw_text = load_document(uploaded_file)
@@ -248,6 +259,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
