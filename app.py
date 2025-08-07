@@ -18,7 +18,7 @@ with st.sidebar:
     theme = st.radio("Toggle Theme", ["light", "dark"], index=0 if st.session_state.theme == "light" else 1)
     st.session_state.theme = theme
 
-# 🖌️ Apply dynamic theme
+# 🖍️ Apply dynamic theme
 if st.session_state.theme == "dark":
     st.markdown(
         """
@@ -62,7 +62,8 @@ with st.sidebar:
     response_mode = st.radio("Response Mode", ["Concise", "Detailed"], help="Choose how detailed the response should be.")
     temperature = st.slider("Creativity (temperature)", 0.0, 1.0, 0.3, 0.1, help="Higher = more creative, lower = more factual.")
 
-    uploaded_file = st.file_uploader(
+    uploader_placeholder = st.empty()
+    uploaded_file = uploader_placeholder.file_uploader(
         "📁 Upload Financial Report",
         type=["pdf", "docx", "xlsx", "txt"],
         key="uploader",
@@ -70,8 +71,10 @@ with st.sidebar:
     )
 
     if st.button("🗑️ Reset / Upload New File"):
-        st.session_state.clear()
-        st.rerun()
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        uploader_placeholder.empty()
+        st.experimental_rerun()
 
     def download_button(label, content, filename):
         b64 = base64.b64encode(content.encode()).decode()
