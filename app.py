@@ -13,7 +13,7 @@ import requests
 from io import BytesIO
 
 # 🌟 Set up the Streamlit page
-st.set_page_config(page_title="📊 Financial Document Chatbot", layout="wide")
+st.markdown("## 📊 Financial Document Chatbot – Ask questions about reports or general finance")
 
 # 🌙 Theme toggle logic
 with st.sidebar:
@@ -239,6 +239,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
