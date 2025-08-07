@@ -68,13 +68,11 @@ def generate_financial_chart(insights_text):
     ax.bar(numeric_metrics.keys(), numeric_metrics.values(), color="teal")
     ax.set_ylabel("Value")
     ax.set_title("📊 Financial Insights (Chart)")
-
     plt.xticks(rotation=45, ha="right")
 
+    # Save to buffer and return
     buf = BytesIO()
     plt.tight_layout()
     plt.savefig(buf, format="png")
     buf.seek(0)
-
     return buf
-
