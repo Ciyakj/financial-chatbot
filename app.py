@@ -205,37 +205,23 @@ if prompt:
             model = get_chat_model(provider=model_option, temperature=temperature)
             system_prefix = "Answer concisely." if response_mode == "Concise" else "Provide a detailed and in-depth answer."
 
-            if st.session_state.vectorstore:
-                try:
+            try:
+                if st.session_state.vectorstore:
+                # Try RAG-based response first
                     answer, sources = get_rag_response_with_sources(
                         f"{system_prefix}\n{prompt}", st.session_state.vectorstore, model
                     )
                     response = answer
-                except Exception as e:
-                    response = f"❗ Sorry, I couldn't process your document query.\n\n**Error:** {str(e)}"
-                    sources = []
-            else:
-                allowed_phrases = [
-                    "what can you do", "who are you", "how to use", "help", "purpose",
-                    "features", "upload", "start", "document", "instructions", "how"
-                ]
-                if any(phrase in prompt.lower() for phrase in allowed_phrases):
-                    response = (
-                        "👋 I’m a chatbot that helps analyze uploaded financial documents.\n\n"
-                        "Please upload a PDF report such as an annual statement, income report, or balance sheet.\n"
-                        "Then I can answer questions like:\n"
-                        "- What is the revenue?\n"
-                        "- What are the net profits?\n"
-                        "- Are there any financial risks?\n\n"
-                        "📁 Go ahead and upload a file to begin!"
-                    )
-                    sources = []
+
                 else:
-                    response = (
-                        "⚠️ I can only respond to questions about uploaded financial documents.\n\n"
-                        "Please upload a file to begin exploring financial data."
-                    )
+                    # Use LLM directly for general questions
+                    system_message = "You are a helpful financial assistant. Provide clear and accurate answers to financial questions."
+                    response = model.invoke(f"{system_message}\n{prompt}")
                     sources = []
+
+            except Exception as e:
+                response = f"❗ Sorry, I couldn't process your question.\n\n**Error:** {str(e)}"
+                sources = []
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
@@ -250,3 +236,4 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
