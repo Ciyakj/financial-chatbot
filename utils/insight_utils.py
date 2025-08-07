@@ -74,5 +74,9 @@ def generate_financial_chart(insights_text):
     buf = BytesIO()
     plt.tight_layout()
     plt.savefig(buf, format="png")
+    plt.close()  # <== THIS IS IMPORTANT to prevent duplicate rendering
     buf.seek(0)
+
     return buf
+    
+
