@@ -81,7 +81,7 @@ with st.sidebar:
                 del st.session_state[key]
         st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
         st.cache_data.clear()
-        st.experimental_rerun()
+        st.rerun()
 
     def download_button(label, content, filename):
         b64 = base64.b64encode(content.encode()).decode()
@@ -205,3 +205,4 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
