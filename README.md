@@ -6,8 +6,7 @@ An AI-powered Streamlit chatbot that helps users analyze financial documents (PD
 
 ## 🚀 Deployment
 
-**Live App:** [Click here to try it out](https://your-username-your-repo-name.streamlit.app)  
-*(Replace this with your actual Streamlit Cloud deployment link)*
+**Live App:** [Click here to try it out]([https://your-username-your-repo-name.streamlit.app](https://financial-chatbot-fscidhbxdgbfgkwycrfcsj.streamlit.app/))  
 
 ---
 
@@ -65,7 +64,7 @@ Help users explore and understand financial documents through natural language q
 ## 📂 Run Locally
 
 ```bash
-git clone https://github.com/your-username/financial-chatbot.git
+git clone https://github.com/Ciyakj/financial-chatbot.git
 cd financial-chatbot
 pip install -r requirements.txt
 streamlit run app.py
