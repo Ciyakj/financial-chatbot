@@ -102,28 +102,24 @@ if st.button("📥 Fetch & Upload Document from URL") and doc_url:
                 st.stop()
 
             content_type = response.headers.get("content-type", "").lower()
-            suffix = ".pdf"  # default
-
+            suffix = ".pdf"
             if "docx" in content_type:
                 suffix = ".docx"
-            elif "excel" in content_type or "xlsx" in content_type:
+            elif "xlsx" in content_type or "excel" in content_type:
                 suffix = ".xlsx"
             elif "text" in content_type or "plain" in content_type:
                 suffix = ".txt"
 
-            _, tmp_path = tempfile.mkstemp(suffix=suffix)
-            with open(tmp_path, "wb") as tmp_file:
-                tmp_file.write(response.content)
-
-            with open(tmp_path, "rb") as f:
-                uploaded_file = BytesIO(f.read())
-                uploaded_file.name = f"fetched{suffix}"
-                st.session_state["fetched_file"] = uploaded_file
-                st.success("✅ Document fetched and ready for processing!")
+            # Simulate uploaded file
+            uploaded_file = BytesIO(response.content)
+            uploaded_file.name = f"fetched{suffix}"
+            st.session_state.uploaded_file = uploaded_file
+            st.success("✅ Document fetched and ready for processing!")
 
     except Exception as e:
         st.error(f"❌ Error fetching file: {e}")
         st.stop()
+
 
 
     if st.button("🗑️ Reset / Upload New File"):
@@ -150,9 +146,10 @@ if st.button("📥 Fetch & Upload Document from URL") and doc_url:
         download_button("📅 Download Insights", insights_text, "financial_insights.txt")
 
 # --- Document Handling ---
-if uploaded_file or "fetched_file" in st.session_state:
+if uploaded_file or "uploaded_file" in st.session_state:
     if not uploaded_file:
-        uploaded_file = st.session_state["fetched_file"]
+        uploaded_file = st.session_state["uploaded_file"]
+
 
     st.success("✅ Document uploaded successfully!")
     with st.spinner("🔀 Processing document..."):
@@ -259,6 +256,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
