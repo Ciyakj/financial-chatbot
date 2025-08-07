@@ -37,3 +37,44 @@ def extract_financial_metrics(text, model_provider="openai"):
     except Exception as e:
         return f"❌ Metric Extraction Error: {str(e)}"
 
+
+import matplotlib.pyplot as plt
+import re
+from io import BytesIO
+
+def generate_financial_chart(insights_text):
+    numeric_metrics = {}
+
+    for line in insights_text.split("\n"):
+        if ":" in line:
+            key, value = line.split(":", 1)
+            key = key.strip()
+            value = value.strip()
+
+            # Extract number (supports ₹, commas, decimals)
+            match = re.search(r"([\d,.]+)", value.replace(",", ""))
+            if match:
+                try:
+                    numeric_value = float(match.group(1))
+                    numeric_metrics[key] = numeric_value
+                except:
+                    pass
+
+    if not numeric_metrics:
+        return None
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.bar(numeric_metrics.keys(), numeric_metrics.values(), color="teal")
+    ax.set_ylabel("Value")
+    ax.set_title("📊 Financial Insights (Chart)")
+
+    plt.xticks(rotation=45, ha="right")
+
+    buf = BytesIO()
+    plt.tight_layout()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+
+    return buf
+
