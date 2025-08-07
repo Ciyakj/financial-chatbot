@@ -26,7 +26,6 @@ Help users explore and understand financial documents through natural language q
 - 🗨️ **RAG + General Chat Handling**
 - 🎨 **Dark/Light Theme Toggle**
 - 📥 **Download Chat & Insights**
-- 🖼️ (Optional) Image & Audio Upload (Phase 3 enhancement)
   
 ---
 
@@ -48,7 +47,6 @@ Help users explore and understand financial documents through natural language q
 - **Groq (LLaMA3)** / **Gemini (Google AI Studio)**
 - **FAISS Vectorstore**
 - **Matplotlib** (for charting)
-- **pytesseract / Whisper** *(for optional multimodal features)*
 
 ---
 
