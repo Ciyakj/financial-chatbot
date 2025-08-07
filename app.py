@@ -1,5 +1,7 @@
 import streamlit as st
 import base64
+import random
+import string
 from models.llm import get_chat_model
 from models.embeddings import create_vectorstore
 from utils.rag_utils import get_rag_response_with_sources
@@ -54,6 +56,9 @@ if "messages" not in st.session_state:
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 
+if "upload_key" not in st.session_state:
+    st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
+
 # --- Sidebar Settings ---
 with st.sidebar:
     st.header(":wrench: Settings")
@@ -66,17 +71,17 @@ with st.sidebar:
     uploaded_file = uploader_placeholder.file_uploader(
         "📁 Upload Financial Report",
         type=["pdf", "docx", "xlsx", "txt"],
-        key="uploader",
+        key=st.session_state.upload_key,
         help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
 
     if st.button("🗑️ Reset / Upload New File"):
         for key in list(st.session_state.keys()):
-            del st.session_state[key]
+            if key not in ["theme"]:
+                del st.session_state[key]
+        st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
         st.cache_data.clear()
-        uploader_placeholder.empty()
-        st.rerun()
-
+        st.experimental_rerun()
 
     def download_button(label, content, filename):
         b64 = base64.b64encode(content.encode()).decode()
@@ -96,7 +101,7 @@ with st.sidebar:
 # --- Document Handling ---
 if uploaded_file:
     st.success("✅ Document uploaded successfully!")
-    with st.spinner("🔄 Processing document..."):
+    with st.spinner("🔀 Processing document..."):
         raw_text = load_document(uploaded_file)
 
         if raw_text.startswith("❌"):
@@ -200,4 +205,3 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
-
