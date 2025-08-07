@@ -16,7 +16,11 @@ def create_vectorstore(file):
     if not chunks:
         return "❌ No chunks could be created from the document."
 
-    embeddings = GoogleGenerativeAIEmbeddings(google_api_key=GOOGLE_API_KEY)
+    # ✅ Specify the required model name
+    embeddings = GoogleGenerativeAIEmbeddings(
+        google_api_key=GOOGLE_API_KEY,
+        model="models/embedding-001"  # Required model name for Gemini embeddings
+    )
 
     try:
         return FAISS.from_texts(chunks, embedding=embeddings)
