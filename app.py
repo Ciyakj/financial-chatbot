@@ -216,7 +216,7 @@ if prompt:
                 else:
                     # Use LLM directly for general questions
                     system_message = "You are a helpful financial assistant. Provide clear and accurate answers to financial questions."
-                    response = model.invoke(f"{system_message}\n{prompt}")
+                    response = model.invoke(f"{system_message}\n{prompt}").content
                     sources = []
 
             except Exception as e:
@@ -236,4 +236,5 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
