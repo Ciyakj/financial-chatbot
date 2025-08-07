@@ -45,8 +45,6 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-
-
 # --- Session Initialization ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -64,14 +62,6 @@ with st.sidebar:
     model_option = st.selectbox("Choose LLM Provider", ["groq", "google"], help="Pick the backend model.")
     response_mode = st.radio("Response Mode", ["Concise", "Detailed"], help="Choose how detailed the response should be.")
     temperature = st.slider("Creativity (temperature)", 0.0, 1.0, 0.3, 0.1, help="Higher = more creative, lower = more factual.")
-
-    uploader_placeholder = st.empty()
-    uploaded_file = uploader_placeholder.file_uploader(
-        "📁 Upload Financial Report",
-        type=["pdf", "docx", "xlsx", "txt"],
-        key=st.session_state.upload_key,
-        help="Upload financial statements like PDFs, Word, Excel, or text files."
-    )
 
     if st.button("🗑️ Reset / Upload New File"):
         for key in list(st.session_state.keys()):
@@ -96,43 +86,50 @@ with st.sidebar:
             insights_text = "\n".join(insights_text)
         download_button("📅 Download Insights", insights_text, "financial_insights.txt")
 
-# --- URL Upload ---
+# --- Combined Upload Section ---
 st.markdown("---")
-st.subheader("🌐 Or Load via Document URL")
+st.subheader("📂 Upload Financial Document")
+st.caption("Upload a file or paste a document URL below to begin.")
 
-doc_url = st.text_input(
-    "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
-    help="Make sure the link is publicly accessible."
-)
+col1, col2 = st.columns(2)
 
-if st.button("📥 Fetch & Upload Document from URL") and doc_url:
-    try:
-        with st.spinner("Fetching document from URL..."):
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(doc_url, headers=headers)
+with col1:
+    uploaded_file = st.file_uploader(
+        "Upload from File",
+        type=["pdf", "docx", "xlsx", "txt"],
+        key=st.session_state.upload_key,
+        help="Upload PDFs, Word, Excel, or text financial reports."
+    )
 
-            if response.status_code != 200:
-                st.error("❌ Failed to fetch the document. Check the URL.")
-                st.stop()
+with col2:
+    doc_url = st.text_input("Or paste a direct document URL")
+    if st.button("📥 Fetch Document") and doc_url:
+        try:
+            with st.spinner("Fetching document from URL..."):
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(doc_url, headers=headers)
 
-            content_type = response.headers.get("content-type", "").lower()
-            suffix = ".pdf"
-            if "docx" in content_type:
-                suffix = ".docx"
-            elif "xlsx" in content_type or "excel" in content_type:
-                suffix = ".xlsx"
-            elif "text" in content_type or "plain" in content_type:
-                suffix = ".txt"
+                if response.status_code != 200:
+                    st.error("❌ Failed to fetch the document. Check the URL.")
+                    st.stop()
 
-            # Simulate uploaded file
-            uploaded_file = BytesIO(response.content)
-            uploaded_file.name = f"fetched{suffix}"
-            st.session_state.uploaded_file = uploaded_file
-            st.success("✅ Document fetched and ready for processing!")
+                content_type = response.headers.get("content-type", "").lower()
+                suffix = ".pdf"
+                if "docx" in content_type:
+                    suffix = ".docx"
+                elif "xlsx" in content_type or "excel" in content_type:
+                    suffix = ".xlsx"
+                elif "text" in content_type or "plain" in content_type:
+                    suffix = ".txt"
 
-    except Exception as e:
-        st.error(f"❌ Error fetching file: {e}")
-        st.stop()
+                uploaded_file = BytesIO(response.content)
+                uploaded_file.name = f"fetched{suffix}"
+                st.session_state.uploaded_file = uploaded_file
+                st.success("✅ Document fetched and ready for processing!")
+
+        except Exception as e:
+            st.error(f"❌ Error fetching file: {e}")
+            st.stop()
 
 # --- Document Handling ---
 if uploaded_file or "uploaded_file" in st.session_state:
@@ -187,7 +184,6 @@ if not st.session_state.messages:
         "Let's get started! 📁"
     )
 
-
 # --- Display Chat History ---
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -212,14 +208,11 @@ if prompt:
 
             try:
                 if st.session_state.vectorstore:
-                # Try RAG-based response first
                     answer, sources = get_rag_response_with_sources(
                         f"{system_prefix}\n{prompt}", st.session_state.vectorstore, model
                     )
                     response = answer
-
                 else:
-                    # Use LLM directly for general questions
                     system_message = "You are a helpful financial assistant. Provide clear and accurate answers to financial questions."
                     response = model.invoke(f"{system_message}\n{prompt}").content
                     sources = []
@@ -241,8 +234,3 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
-
-
-
-
-
