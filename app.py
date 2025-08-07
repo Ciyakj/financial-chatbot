@@ -42,8 +42,7 @@ else:
         </style>
     """, unsafe_allow_html=True)
 
-st.title(":bar_chart: Financial Document Chatbot")
-st.caption("Ask questions about your uploaded financial documents.")
+
 
 # --- Session Initialization ---
 if "messages" not in st.session_state:
