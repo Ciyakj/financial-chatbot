@@ -182,7 +182,7 @@ if "insights" in st.session_state:
     from utils.insight_utils import generate_financial_chart
     chart_buf = generate_financial_chart(st.session_state["insights"])
     if chart_buf:
-        st.image(chart_buf, caption="📈 Chart of Financial Metrics", use_column_width=True)
+        st.image(chart_buf, caption="📈 Chart of Financial Metrics", use_container_width=True)
 
 
 # --- Welcome Message ---
@@ -263,6 +263,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
