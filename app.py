@@ -178,6 +178,13 @@ if "insights" in st.session_state:
             key, value = line.split(":", 1)
             st.markdown(f"**{key.strip()}**: {value.strip()}")
 
+    # 🔍 Show chart
+    from utils.insight_utils import generate_financial_chart
+    chart_buf = generate_financial_chart(st.session_state["insights"])
+    if chart_buf:
+        st.image(chart_buf, caption="📈 Chart of Financial Metrics", use_column_width=True)
+
+
 # --- Welcome Message ---
 if not st.session_state.messages:
     st.chat_message("assistant").markdown(
@@ -256,6 +263,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
