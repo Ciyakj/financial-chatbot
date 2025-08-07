@@ -176,7 +176,7 @@ if "insights" in st.session_state:
             key, value = line.split(":", 1)
             st.markdown(f"**{key.strip()}**: {value.strip()}")
 
-    # 📊 Optional: Show chart in expandable section
+    # ✅ Chart only shown in expander ONCE
     with st.expander("📈 Show Financial Chart", expanded=False):
         from utils.insight_utils import generate_financial_chart
         chart_buf = generate_financial_chart(st.session_state["insights"])
@@ -184,6 +184,7 @@ if "insights" in st.session_state:
             st.image(chart_buf, caption="📊 Financial Metrics", use_container_width=True)
         else:
             st.info("Chart not available for this document.")
+
 
 
     # 🔍 Show chart
@@ -271,6 +272,7 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
 
 
