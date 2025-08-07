@@ -2,7 +2,7 @@ import streamlit as st
 import base64
 from models.llm import get_chat_model
 from models.embeddings import create_vectorstore
-from utils.rag_utils import get_rag_response
+from utils.rag_utils import get_rag_response_with_sources
 from utils.web_search import search_web
 from utils.document_loader import load_document
 from utils.insight_utils import generate_summary, extract_financial_metrics
@@ -11,64 +11,43 @@ from utils.question_refiner import is_response_poor, get_refinement_suggestions
 # 🌟 Set up the Streamlit page
 st.set_page_config(page_title="📊 Financial Document Chatbot", layout="wide")
 
-# 🌗 Theme toggle
-if "theme_mode" not in st.session_state:
-    st.session_state.theme_mode = "light"
-
-with st.sidebar:
-    theme_choice = st.radio("🌓 Theme", ["light", "dark"], index=0 if st.session_state.theme_mode == "light" else 1)
-    st.session_state.theme_mode = theme_choice
-
-# Dynamic CSS based on theme
-if st.session_state.theme_mode == "dark":
-    bg_color = "#1e1e1e"
-    text_color = "#ffffff"
-    user_bg = "#333"
-    assistant_bg = "#444"
-else:
-    bg_color = "#f9f9f9"
-    text_color = "#000000"
-    user_bg = "#e0f7ff"
-    assistant_bg = "#fff7e6"
-
-st.markdown(f"""
+st.markdown("""
     <style>
-    .block-container {{
+    .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
-        background-color: {bg_color};
-        color: {text_color};
-    }}
-    .sidebar .sidebar-content {{
+        background-color: #f9f9f9;
+    }
+    .sidebar .sidebar-content {
         background-color: #f1f3f6;
         padding: 1rem;
         border-radius: 8px;
-    }}
-    .stButton > button {{
+    }
+    .stButton > button {
         background-color: #0057d8;
         color: white;
         font-weight: bold;
         border-radius: 8px;
         padding: 0.5rem 1rem;
         margin-top: 0.5rem;
-    }}
-    .stTextInput, .stSelectbox, .stRadio, .stFileUploader {{
+    }
+    .stTextInput, .stSelectbox, .stRadio, .stFileUploader {
         border-radius: 8px;
-    }}
-    .stChatMessage.user {{
-        background-color: {user_bg};
-        color: {text_color};
+    }
+    .stChatMessage.user {
+        background-color: #e0f7ff;
+        color: #000;
         border-radius: 12px;
         padding: 1rem;
         margin: 0.5rem 0;
-    }}
-    .stChatMessage.assistant {{
-        background-color: {assistant_bg};
-        color: {text_color};
+    }
+    .stChatMessage.assistant {
+        background-color: #fff7e6;
+        color: #000;
         border-radius: 12px;
         padding: 1rem;
         margin: 0.5rem 0;
-    }}
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -179,9 +158,13 @@ if prompt:
 
             if st.session_state.vectorstore:
                 try:
-                    response = get_rag_response(f"{system_prefix}\n{prompt}", st.session_state.vectorstore, model)
+                    answer, sources = get_rag_response_with_sources(
+                        f"{system_prefix}\n{prompt}", st.session_state.vectorstore, model
+                    )
+                    response = answer
                 except Exception as e:
                     response = f"❗ Sorry, I couldn't process your document query.\n\n**Error:** {str(e)}"
+                    sources = []
             else:
                 allowed_phrases = [
                     "what can you do", "who are you", "how to use", "help", "purpose",
@@ -197,14 +180,21 @@ if prompt:
                         "- Are there any financial risks?\n\n"
                         "📁 Go ahead and upload a file to begin!"
                     )
+                    sources = []
                 else:
                     response = (
                         "⚠️ I can only respond to questions about uploaded financial documents.\n\n"
                         "Please upload a file to begin exploring financial data."
                     )
+                    sources = []
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
+
+            if sources:
+                with st.expander("🔍 Sources Used", expanded=False):
+                    for i, chunk in enumerate(sources):
+                        st.markdown(f"**Chunk {i+1}:**\n> {chunk}")
 
             if is_response_poor(response):
                 st.warning("⚠️ The response was unclear or incomplete.")
