@@ -174,18 +174,19 @@ if "insights" in st.session_state:
 # --- Welcome Message ---
 if not st.session_state.messages:
     st.chat_message("assistant").markdown(
-        "👋 Hello! I'm your AI-powered financial assistant.\n\n"
-        "You can:\n"
-        "- Ask general questions about finance (e.g., investing, saving, equity, etc.)\n"
-        "- Or upload a financial document (PDF, DOCX, XLSX) to analyze and explore insights like:\n"
-        
-        "  • Revenue breakdowns\n"
-        
-        "  • Net profit margins\n"
-        
-        "  • Key financial risks\n\n"
-        "Let's get started! 📁"
+        "👋 **Welcome! I'm your AI-powered financial assistant.**\n\n"
+        "You can:\n\n"
+        "📌 Ask general finance questions — like:\n"
+        "- What is equity vs debt?\n"
+        "- How should I start saving?\n"
+        "- What are ETFs?\n\n"
+        "📂 Or upload a financial document (PDF, DOCX, XLSX) to analyze:\n"
+        "- Revenue breakdowns\n"
+        "- Net profit margins\n"
+        "- Key financial risks and more\n\n"
+        "Just upload a file or paste a document URL to get started! 🚀"
     )
+
 
 # --- Display Chat History ---
 for msg in st.session_state.messages:
@@ -237,4 +238,5 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
