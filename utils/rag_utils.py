@@ -50,3 +50,23 @@ Question:
         return "⚠️ Something went wrong while parsing the response. Try again."
     except Exception as e:
         return f"❌ Error: {str(e)}"
+
+def get_rag_response_with_sources(prompt, vectorstore, model):
+    from langchain.chains import RetrievalQA
+
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=model,
+        retriever=vectorstore.as_retriever(search_type="similarity", k=4),
+        return_source_documents=True
+    )
+
+    result = qa_chain(prompt)
+
+    answer = result["result"]
+    sources = []
+
+    if "source_documents" in result:
+        for doc in result["source_documents"]:
+            sources.append(doc.page_content.strip())
+
+    return answer, sources
