@@ -9,6 +9,10 @@ from utils.web_search import search_web
 from utils.document_loader import load_document
 from utils.insight_utils import generate_summary, extract_financial_metrics
 from utils.question_refiner import is_response_poor, get_refinement_suggestions
+import requests
+import tempfile
+import os
+
 
 # 🌟 Set up the Streamlit page
 st.set_page_config(page_title="📊 Financial Document Chatbot", layout="wide")
@@ -74,6 +78,43 @@ with st.sidebar:
         key=st.session_state.upload_key,
         help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
+    st.markdown("---")
+st.subheader("🌐 Or Load via Document URL")
+
+doc_url = st.text_input(
+    "Paste a direct document URL (PDF, DOCX, XLSX, TXT):",
+    help="Make sure the link is publicly accessible."
+)
+
+if st.button("📥 Fetch & Upload Document from URL") and doc_url:
+    try:
+        with st.spinner("Fetching document from URL..."):
+            response = requests.get(doc_url)
+            if response.status_code != 200:
+                st.error("❌ Failed to fetch the document. Check the URL.")
+                st.stop()
+
+            content_type = response.headers.get("content-type", "").lower()
+            suffix = ".pdf"
+            if "docx" in content_type:
+                suffix = ".docx"
+            elif "excel" in content_type or "xlsx" in content_type:
+                suffix = ".xlsx"
+            elif "text" in content_type:
+                suffix = ".txt"
+
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            tmp_file.write(response.content)
+            tmp_file.close()
+
+            # Simulate uploaded file
+            with open(tmp_file.name, "rb") as f:
+                uploaded_file = f
+                st.success("✅ Document fetched and ready for processing!")
+
+    except Exception as e:
+        st.error(f"❌ Error fetching file: {e}")
+        st.stop()
 
     if st.button("🗑️ Reset / Upload New File"):
         for key in list(st.session_state.keys()):
@@ -99,7 +140,7 @@ with st.sidebar:
         download_button("📅 Download Insights", insights_text, "financial_insights.txt")
 
 # --- Document Handling ---
-if uploaded_file:
+if uploaded_file is not None:
     st.success("✅ Document uploaded successfully!")
     with st.spinner("🔀 Processing document..."):
         raw_text = load_document(uploaded_file)
@@ -205,4 +246,5 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
 
