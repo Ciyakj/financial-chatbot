@@ -58,7 +58,7 @@ if "vectorstore" not in st.session_state:
 with st.sidebar:
     st.header(":wrench: Settings")
 
-    model_option = st.selectbox("Choose LLM Provider", ["groq", "openai", "google"], help="Pick the backend model.")
+    model_option = st.selectbox("Choose LLM Provider", ["groq", "google"], help="Pick the backend model.")
     response_mode = st.radio("Response Mode", ["Concise", "Detailed"], help="Choose how detailed the response should be.")
     temperature = st.slider("Creativity (temperature)", 0.0, 1.0, 0.3, 0.1, help="Higher = more creative, lower = more factual.")
 
@@ -73,6 +73,7 @@ with st.sidebar:
     if st.button("🗑️ Reset / Upload New File"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
+        st.cache_data.clear()
         uploader_placeholder.empty()
         st.experimental_rerun()
 
