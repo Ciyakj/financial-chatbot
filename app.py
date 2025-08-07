@@ -10,9 +10,7 @@ from utils.document_loader import load_document
 from utils.insight_utils import generate_summary, extract_financial_metrics
 from utils.question_refiner import is_response_poor, get_refinement_suggestions
 import requests
-import tempfile
-import os
-
+from io import BytesIO
 
 # 🌟 Set up the Streamlit page
 st.set_page_config(page_title="📊 Financial Document Chatbot", layout="wide")
@@ -26,29 +24,23 @@ with st.sidebar:
 
 # 🖍️ Apply dynamic theme
 if st.session_state.theme == "dark":
-    st.markdown(
-        """
+    st.markdown("""
         <style>
         .block-container { background-color: #0e1117; color: white; }
         .sidebar .sidebar-content { background-color: #1c1f26; color: white; }
         .stChatMessage.user { background-color: #223; color: #fff; }
         .stChatMessage.assistant { background-color: #334; color: #fff; }
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 else:
-    st.markdown(
-        """
+    st.markdown("""
         <style>
         .block-container { background-color: #f9f9f9; color: black; }
         .sidebar .sidebar-content { background-color: #f1f3f6; color: black; }
         .stChatMessage.user { background-color: #e0f7ff; color: black; }
         .stChatMessage.assistant { background-color: #fff7e6; color: black; }
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
 st.title(":bar_chart: Financial Document Chatbot")
 st.caption("Ask questions about your uploaded financial documents.")
@@ -79,8 +71,30 @@ with st.sidebar:
         help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
 
-    from io import BytesIO
+    if st.button("🗑️ Reset / Upload New File"):
+        for key in list(st.session_state.keys()):
+            if key not in ["theme"]:
+                del st.session_state[key]
+        st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
+        st.cache_data.clear()
+        st.rerun()
 
+    def download_button(label, content, filename):
+        b64 = base64.b64encode(content.encode()).decode()
+        href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">{label}</a>'
+        st.markdown(href, unsafe_allow_html=True)
+
+    if st.session_state.messages:
+        chat_text = "\n\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in st.session_state.messages])
+        download_button("📅 Download Chat", chat_text, "chat_history.txt")
+
+    if "insights" in st.session_state:
+        insights_text = st.session_state["insights"]
+        if isinstance(insights_text, list):
+            insights_text = "\n".join(insights_text)
+        download_button("📅 Download Insights", insights_text, "financial_insights.txt")
+
+# --- URL Upload ---
 st.markdown("---")
 st.subheader("🌐 Or Load via Document URL")
 
@@ -118,36 +132,10 @@ if st.button("📥 Fetch & Upload Document from URL") and doc_url:
         st.error(f"❌ Error fetching file: {e}")
         st.stop()
 
-# ✅ Now outside the above block — always visible
-if st.button("🗑️ Reset / Upload New File"):
-    for key in list(st.session_state.keys()):
-        if key not in ["theme"]:
-            del st.session_state[key]
-    st.session_state.upload_key = ''.join(random.choices(string.ascii_letters, k=10))
-    st.cache_data.clear()
-    st.rerun()
-
-# ⬇️ Keep the download button logic as-is below
-def download_button(label, content, filename):
-    b64 = base64.b64encode(content.encode()).decode()
-    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">{label}</a>'
-    st.markdown(href, unsafe_allow_html=True)
-
-if st.session_state.messages:
-    chat_text = "\n\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in st.session_state.messages])
-    download_button("📅 Download Chat", chat_text, "chat_history.txt")
-
-if "insights" in st.session_state:
-    insights_text = st.session_state["insights"]
-    if isinstance(insights_text, list):
-        insights_text = "\n".join(insights_text)
-    download_button("📅 Download Insights", insights_text, "financial_insights.txt")
-
 # --- Document Handling ---
 if uploaded_file or "uploaded_file" in st.session_state:
     if not uploaded_file:
         uploaded_file = st.session_state["uploaded_file"]
-
 
     st.success("✅ Document uploaded successfully!")
     with st.spinner("🔀 Processing document..."):
@@ -176,7 +164,6 @@ if "insights" in st.session_state:
             key, value = line.split(":", 1)
             st.markdown(f"**{key.strip()}**: {value.strip()}")
 
-    # ✅ Chart only shown in expander ONCE
     with st.expander("📈 Show Financial Chart", expanded=False):
         from utils.insight_utils import generate_financial_chart
         chart_buf = generate_financial_chart(st.session_state["insights"])
@@ -184,15 +171,6 @@ if "insights" in st.session_state:
             st.image(chart_buf, caption="📊 Financial Metrics", use_container_width=True)
         else:
             st.info("Chart not available for this document.")
-
-
-
-    # 🔍 Show chart
-    from utils.insight_utils import generate_financial_chart
-    chart_buf = generate_financial_chart(st.session_state["insights"])
-    if chart_buf:
-        st.image(chart_buf, caption="📈 Chart of Financial Metrics", use_container_width=True)
-
 
 # --- Welcome Message ---
 if not st.session_state.messages:
@@ -272,13 +250,3 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
-
-
-
-
-
-
-
-
-
-
