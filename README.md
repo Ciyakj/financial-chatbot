@@ -6,7 +6,7 @@ An AI-powered Streamlit chatbot that helps users analyze financial documents (PD
 
 ## 🚀 Deployment
 
-**Live App:** [Click here to try it out]([https://your-username-your-repo-name.streamlit.app](https://financial-chatbot-fscidhbxdgbfgkwycrfcsj.streamlit.app/))  
+**Live App:** [Click here to try it out]((https://financial-chatbot-fscidhbxdgbfgkwycrfcsj.streamlit.app/)])  
 
 ---
 
