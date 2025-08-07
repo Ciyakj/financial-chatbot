@@ -11,45 +11,38 @@ from utils.question_refiner import is_response_poor, get_refinement_suggestions
 # 🌟 Set up the Streamlit page
 st.set_page_config(page_title="📊 Financial Document Chatbot", layout="wide")
 
-st.markdown("""
-    <style>
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        background-color: #f9f9f9;
-    }
-    .sidebar .sidebar-content {
-        background-color: #f1f3f6;
-        padding: 1rem;
-        border-radius: 8px;
-    }
-    .stButton > button {
-        background-color: #0057d8;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        margin-top: 0.5rem;
-    }
-    .stTextInput, .stSelectbox, .stRadio, .stFileUploader {
-        border-radius: 8px;
-    }
-    .stChatMessage.user {
-        background-color: #e0f7ff;
-        color: #000;
-        border-radius: 12px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-    }
-    .stChatMessage.assistant {
-        background-color: #fff7e6;
-        color: #000;
-        border-radius: 12px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# 🌙 Theme toggle logic
+with st.sidebar:
+    if "theme" not in st.session_state:
+        st.session_state.theme = "light"
+    theme = st.radio("Toggle Theme", ["light", "dark"], index=0 if st.session_state.theme == "light" else 1)
+    st.session_state.theme = theme
+
+# 🖌️ Apply dynamic theme
+if st.session_state.theme == "dark":
+    st.markdown(
+        """
+        <style>
+        .block-container { background-color: #0e1117; color: white; }
+        .sidebar .sidebar-content { background-color: #1c1f26; color: white; }
+        .stChatMessage.user { background-color: #223; color: #fff; }
+        .stChatMessage.assistant { background-color: #334; color: #fff; }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.markdown(
+        """
+        <style>
+        .block-container { background-color: #f9f9f9; color: black; }
+        .sidebar .sidebar-content { background-color: #f1f3f6; color: black; }
+        .stChatMessage.user { background-color: #e0f7ff; color: black; }
+        .stChatMessage.assistant { background-color: #fff7e6; color: black; }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 st.title(":bar_chart: Financial Document Chatbot")
 st.caption("Ask questions about your uploaded financial documents.")
@@ -65,14 +58,15 @@ if "vectorstore" not in st.session_state:
 with st.sidebar:
     st.header(":wrench: Settings")
 
-    model_option = st.selectbox("Choose LLM Provider", ["groq", "openai", "google"])
-    response_mode = st.radio("Response Mode", ["Concise", "Detailed"])
-    temperature = st.slider("Creativity (temperature)", 0.0, 1.0, 0.3, 0.1)
+    model_option = st.selectbox("Choose LLM Provider", ["groq", "openai", "google"], help="Pick the backend model.")
+    response_mode = st.radio("Response Mode", ["Concise", "Detailed"], help="Choose how detailed the response should be.")
+    temperature = st.slider("Creativity (temperature)", 0.0, 1.0, 0.3, 0.1, help="Higher = more creative, lower = more factual.")
 
     uploaded_file = st.file_uploader(
-        "\U0001f4c1 Upload Financial Report",
+        "📁 Upload Financial Report",
         type=["pdf", "docx", "xlsx", "txt"],
-        key="uploader"
+        key="uploader",
+        help="Upload financial statements like PDFs, Word, Excel, or text files."
     )
 
     if st.button("🗑️ Reset / Upload New File"):
