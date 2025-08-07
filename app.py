@@ -178,8 +178,11 @@ if not st.session_state.messages:
         "You can:\n"
         "- Ask general questions about finance (e.g., investing, saving, equity, etc.)\n"
         "- Or upload a financial document (PDF, DOCX, XLSX) to analyze and explore insights like:\n"
+        
         "  • Revenue breakdowns\n"
+        
         "  • Net profit margins\n"
+        
         "  • Key financial risks\n\n"
         "Let's get started! 📁"
     )
@@ -234,3 +237,4 @@ if prompt:
                 with st.expander("💡 Need help asking better questions?"):
                     for tip in get_refinement_suggestions():
                         st.markdown(f"- {tip}")
+
